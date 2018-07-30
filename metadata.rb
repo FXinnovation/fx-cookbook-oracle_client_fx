@@ -1,7 +1,7 @@
 name             'oracle_client_fx'
 maintainer       'FX Innovation'
 maintainer_email 'cloudsquad@fxinnovation.com'
-license          'All Rights Reserved'
+license          'MIT'
 description      'Installs/Configures oracle client.'
 long_description 'Installs/Configures oracle client.'
 supports         'redhat'
