@@ -9,5 +9,5 @@ version          '0.1.0'
 chef_version     '>= 12.24' if respond_to?(:chef_version)
 source_url       'https://bitbucket.org/fxadmin/public-common-cookbook-oracle_client_fx/'
 issues_url       'https://bitbucket.org/fxadmin/public-common-cookbook-oracle_client_fx/issues/'
-depends          'java',         '~> 1.50.0'
+depends          'java', '~> 1.50.0'
 depends          'unzip_fx'

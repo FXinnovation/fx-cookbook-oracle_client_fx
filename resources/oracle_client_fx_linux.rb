@@ -22,7 +22,7 @@ property :tls_certificate_url,      String, default: ''
 action :build do
   base_path    = '/opt/oracle'
   var_path     = '/var/oracle'
-  home_path    = "/opt/oracle/product/#{version}"
+  home_path    = "#{base_path}/product/#{version}"
   bin_path     = "#{home_path}/bin"
   lib_path     = "#{home_path}/lib"
   wallet_path  = "#{home_path}/ssl_wallet"
