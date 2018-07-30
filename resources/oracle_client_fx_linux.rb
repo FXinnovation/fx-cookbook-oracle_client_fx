@@ -9,51 +9,41 @@ resource_name :oracle_client_fx
 
 provides :oracle_client_fx, os: 'linux'
 
-property :java_version,             String, default: node['java']['jdk_version']
-property :depot_scheme,             String, default: 'http'
-property :depot_domain,             String, default: 'depot.xcorp.fairstone.ca'
-property :depot_oracle_uri,         String, default: '/repo/oracle/'
-property :oracle_dependencies,      Array,  default: node['fx_oracle_client']['dependencies']
-property :oracle_user,              String, default: 'oracle'
-property :oracle_group,             String, default: 'dba'
-property :oracle_client_version,    String, default: '11.2'
-property :oracle_base_path,         String, default: '/opt/oracle'
-property :oracle_var_path,          String, default: '/var/oracle'
-property :oracle_home_path,         String, default: '/opt/oracle/product/11.2/orahome'
-property :oracle_client_bin_path,   String, default: '/opt/oracle/product/11.2/orahome/bin'
-property :oracle_client_lib_path,   String, default: '/opt/oracle/product/11.2/orahome/lib'
-property :oracle_client_zip_file,   String, default: 'linux.x64_11gR2_client.zip'
-property :oracle_client_checksum,   String, default: '6d03e05c0fa3a5f6a0fb6aa75f7b9dce9e09a31d776516694f7fa6ebce9bb775'
-property :oracle_sqlnet_options,    HashM,  default: {}
-property :oracle_tnsnames_options,  Array,  default: []
+property :java_version,             String, default: '8'
+property :ora_user,                 String, default: 'oracle'
+property :ora_group,                String, default: 'dba'
+property :version,                  String, default: '11.2'
+property :installer_checksum,       String, default: '6d03e05c0fa3a5f6a0fb6aa75f7b9dce9e09a31d776516694f7fa6ebce9bb775'
+property :installer_url,            String
+property :sqlnet_options,           Hash, default: {}
+property :tnsnames_options,         String, default: ''
+property :tls_certificate_url,      String, default: ''
 
 action :build do
+  base_path    = '/opt/oracle'
+  var_path     = '/var/oracle'
+  home_path    = "/opt/oracle/product/#{version}"
+  bin_path     = "#{home_path}/bin"
+  lib_path     = "#{home_path}/lib"
+  wallet_path  = "#{home_path}/ssl_wallet"
+  dependencies = %w(gcc-c++ gcc compat-libstdc++-33 compat-libstdc++-33.i686 glibc glibc.i686 unixODBC unixODBC.i686 elfutils-libelf-devel libstdc++ libaio-devel unixODBC-devel sysstat)
+
   node.default['java']['jdk_version'] = new_resource.java_version
   include_recipe 'java::default'
 
-  #oracle_base_path is path
-  #oracle_var_path is path
-  #oracle_home_path is path
-  #oracle_home_path contains oracle_client_version
-  #oracle_client_bin_path is path
-  #oracle_client_bin_path contains oracle_client_version
-  #oracle_client_lib_path is path
-  #oracle_client_lib_path contains oracle_client_version
-  #oracle_base_path is path
-
-  user "#{oracle_user}" do
-    comment 'Oracle user'
+  user "#{ora_user}" do
+    comment 'Oracle user.'
     system true
     manage_home false
   end
 
-  group "#{oracle_group}" do
-    members "#{oracle_user}"
+  group "#{ora_group}" do
+    members "#{ora_user}"
     append true
     system true
   end
 
-  new_resource.oracle_dependencies.each do |oracle_dependency|
+  dependencies.each do |oracle_dependency|
     package oracle_dependency
   end
 
@@ -63,9 +53,9 @@ action :build do
     group 'root'
     mode '0755'
     variables(
-      oracle_home_path: new_resource.oracle_home_path,
-      oracle_client_bin_path: new_resource.oracle_client_bin_path,
-      oracle_client_lib_path: new_resource.oracle_client_lib_path
+      home_path: home_path,
+      bin_path: bin_path,
+      lib_path: lib_path
     )
     verify 'bash -n %{path}'
   end
@@ -76,76 +66,114 @@ action :build do
     group 'root'
     mode '0644'
     variables(
-      oracle_client_lib_path: new_resource.oracle_client_lib_path
+      lib_path: lib_path
     )
   end
 
-  directory "#{oracle_base_path}" do
-    owner "#{oracle_user}"
-    group "#{oracle_group}"
+  directory "#{base_path}" do
+    owner "#{ora_user}"
+    group "#{ora_group}"
     mode '2755'
     action :create
   end
 
-  directory "#{oracle_var_path}" do
-    owner "#{oracle_user}"
-    group "#{oracle_group}"
+  directory "#{var_path}" do
+    owner "#{ora_user}"
+    group "#{ora_group}"
     mode '2755'
     action :create
   end
 
-  depot_oracle_url = "#{depot_scheme}://#{depot_domain}#{depot_oracle_uri}"
-  unzip_fx "#{oracle_client_zip_file}" do
-    source "#{depot_oracle_url}#{oracle_client_zip_file}"
-    checksum "#{oracle_client_checksum}"
+  unzip_fx "linux-oracle_client-#{version}" do
+    source "#{installer_url}"
+    checksum "#{installer_checksum}"
     mode '0755'
     recursive true
     creates 'client'
-    target_dir "/linux-oracle_client-#{oracle_client_version}"
+    target_dir "/linux-oracle_client-#{version}"
     action :extract
   end
 
-  template "linux-oracle_client-#{oracle_client_version}/client/install/oraparam.ini" do
-    source "oracle-home/#{oracle_client_version}/install/oraparam.ini.erb"
-    owner "#{oracle_user}"
-    group "#{oracle_group}"
+  template "linux-oracle_client-#{version}/client/install/oraparam.ini" do
+    source "oracle-home/#{version}/install/oraparam.ini.erb"
+    owner "#{ora_user}"
+    group "#{ora_group}"
     mode '0644'
   end
 
-  template "linux-oracle_client-#{oracle_client_version}/client/response/client_install.rsp" do
-    source "oracle-home/#{oracle_client_version}/response/client_install.rsp.erb"
-    owner "#{oracle_user}"
-    group "#{oracle_group}"
+  template "linux-oracle_client-#{version}/client/response/client_install.rsp" do
+    source "oracle-home/#{version}/response/client_install.rsp.erb"
+    owner "#{ora_user}"
+    group "#{ora_group}"
     mode '0644'
     variables(
-      oracle_base_path: new_resource.oracle_base_path,
-      oracle_group: new_resource.oracle_group,
-      oracle_home_path: new_resource.oracle_home_path,
-      oracle_client_bin_path: new_resource.oracle_client_bin_path,
-      oracle_client_lib_path: new_resource.oracle_client_lib_path
+      base_path: base_path,
+      group: new_resource.ora_group,
+      home_path: home_path,
+      bin_path: bin_path,
+      lib_path: lib_path
     )
   end
 
   execute 'run oracle installer' do
-    command "./runInstaller -silent -responseFile /linux-oracle_client-#{oracle_client_version}/client/response/client_install.rsp"
-    cwd "linux-oracle_client-#{oracle_client_version}/client/"
-    group "#{oracle_group}"
-    user "#{oracle_user}"
+    command "source /etc/profile && ./runInstaller -silent -responseFile /linux-oracle_client-#{version}/client/response/client_install.rsp"
+    cwd "linux-oracle_client-#{version}/client/"
+    user "#{ora_user}"
   end
 
   # This is because oracle installer returns early but a subprocess continues to install.
-  # Thus at this time installation might be unfinished. Install usually takes 10s.
+  # Thus at this time installation might be unfinished. Install usually takes 30s.
   execute 'wait for oracle client to be installed.' do
-    command 'sleep 20'
-  end
-
-  execute 'run root permission changes' do
-    command "#{oracle_base_path}/orainstRoot.sh"
+    not_if { ::File.exist?("#{home_path}/root.sh") }
+    command 'sleep 60'
   end
 
   execute 'run oracle client end of installation' do
-    command "#{oracle_home_path}/root.sh"
+    command "#{home_path}/root.sh"
   end
 
+  file "#{home_path}/network/admin/tnsnames.ora" do
+    content "#{tnsnames_options}"
+    mode '0640'
+    owner "#{ora_user}"
+    group "#{ora_group}"
+  end
 
+  template "#{home_path}/network/admin/sqlnet.ora" do
+    source "oracle-home/#{version}/network/admin/sqlnet.ora.erb"
+    owner "#{ora_user}"
+    group "#{ora_group}"
+    mode '0640'
+    variables(
+      sqlnet_options: new_resource.sqlnet_options
+    )
+  end
+
+  directory "#{wallet_path}" do
+    not_if { tls_certificate_url == '' }
+    owner "#{ora_user}"
+    group "#{ora_group}"
+    mode '0750'
+    action :create
+  end
+
+  remote_file "#{wallet_path}/root-cert.pem" do
+    not_if { tls_certificate_url == '' }
+    source "#{tls_certificate_url}"
+    mode '0640'
+    owner "#{ora_user}"
+    group "#{ora_group}"
+  end
+
+  execute 'create wallet' do
+    not_if { tls_certificate_url == '' }
+    command "source /etc/profile && orapki wallet create -wallet #{wallet_path} -auto_login_only"
+    user "#{ora_user}"
+  end
+
+  execute 'add wallet' do
+    not_if { tls_certificate_url == '' }
+    command "source /etc/profile && orapki wallet add -wallet #{wallet_path} -trusted_cert -cert #{wallet_path}/root-cert.pem -auto_login_only "
+    user "#{ora_user}"
+  end
 end

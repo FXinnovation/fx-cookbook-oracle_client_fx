@@ -23,10 +23,10 @@ oracle.install.responseFileVersion=/oracle/install/rspfmt_clientinstall_response
 ORACLE_HOSTNAME=
 #-------------------------------------------------------------------------------
 # Unix group to be set for the inventory directory.  
-UNIX_GROUP_NAME=<%= @oracle_group %>
+UNIX_GROUP_NAME=<%= @group %>
 #-------------------------------------------------------------------------------
 # Inventory location.
-INVENTORY_LOCATION=<%= @oracle_base_path %>
+INVENTORY_LOCATION=<%= @base_path %>
 #-------------------------------------------------------------------------------
 # Languages in which the components will be installed.             
 #
@@ -59,10 +59,10 @@ INVENTORY_LOCATION=<%= @oracle_base_path %>
 SELECTED_LANGUAGES=en
 #-------------------------------------------------------------------------------
 # Complete path of the Oracle Home  
-ORACLE_HOME=<%= @oracle_home_path %>
+ORACLE_HOME=<%= @home_path %>
 #-------------------------------------------------------------------------------
 # Complete path of the Oracle Base. 
-ORACLE_BASE=<%= @oracle_base_path %>
+ORACLE_BASE=<%= @base_path %>
 #-------------------------------------------------------------------------------
 #Name       : INSTALL_TYPE
 #Datatype   : String
