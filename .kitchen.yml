@@ -1,0 +1,86 @@
+---
+driver:
+  name: gce
+  project: dazzlingwrench
+  region: us-east1
+  preemptible: true
+  metadata:
+    ssh-keys: <%= 'kitchenuser:' + IO.binread("/tmp/id_rsa.pub").rstrip! %>
+  tags:
+    - fxinnovation
+
+provisioner:
+  name: chef_zero
+
+verifier:
+  name: inspec
+  sudo: true
+  format: junit
+  output: "%{platform}_%{suite}_inspec.xml"
+
+transport:
+  username: kitchenuser
+  ssh_key: /tmp/id_rsa
+
+platforms:
+- name: centos6
+  driver:
+    image_project: centos-cloud
+    image_family: centos-6
+- name: centos7
+  driver:
+    image_project: centos-cloud
+    image_family: centos-7
+- name: redhat6
+  driver:
+    image_project: rhel-cloud
+    image_family: rhel-6
+- name: redhat7
+  driver:
+    image_project: rhel-cloud
+    image_family: rhel-7
+- name: ubuntu1404
+  driver:
+    image_project: ubuntu-os-cloud
+    image_family: ubuntu-1404-lts
+- name: ubuntu1604
+  driver:
+    image_project: ubuntu-os-cloud
+    image_family: ubuntu-1604-lts
+- name: debian8
+  driver:
+    image_project: debian-cloud
+    image_family: debian-8
+- name: debian9
+  driver:
+    image_project: debian-cloud
+    image_family: debian-9
+
+suites:
+  - name: oracle_client
+    run_list:
+      - recipe[oracle_client_fx::kitchen]
+    attributes:
+      oracle_client_fx:
+        java_version: '8'
+        version: '11.2'
+        installer_url: 'http://depot.xcorp.fairstone.ca/repo/oracle/linux.x64_11gR2_client.zip'
+        sqlnet_options:
+          WALLET_LOCATION: '(SOURCE = (METHOD = FILE) (METHOD_DATA = (DIRECTORY = $ORACLE_HOME/ssl_wallet)))'
+          SSL_CLIENT_AUTHENTICATION: 'FALSE'
+          SSL_VERSION: '1.0'
+          SSL_CIPHER_SUITES': '(SSL_RSA_WITH_AES_256_CBC_SHA)'
+          SSL_SERVER_DN_MATCH': 'ON'
+        tls_certificate_url: 'https://s3.amazonaws.com/rds-downloads/rds-ca-2015-root.pem'
+    verifier:
+      inspec_tests:
+        - path: test/integration/linux/default.rb
+    includes:
+      - centos6
+      - centos7
+      - redhat6
+      - redhat7
+      - debian8
+      - debian9
+      - ubuntu1404
+      - ubuntu1604
