@@ -31,14 +31,14 @@ action :build do
   node.default['java']['jdk_version'] = new_resource.java_version
   include_recipe 'java::default'
 
-  user "#{ora_user}" do
+  user ora_user do
     comment 'Oracle user.'
     system true
     manage_home false
   end
 
-  group "#{ora_group}" do
-    members "#{ora_user}"
+  group ora_group do
+    members ora_user
     append true
     system true
   end
@@ -70,23 +70,23 @@ action :build do
     )
   end
 
-  directory "#{base_path}" do
-    owner "#{ora_user}"
-    group "#{ora_group}"
+  directory base_path do
+    owner ora_user
+    group ora_group
     mode '2755'
     action :create
   end
 
-  directory "#{var_path}" do
-    owner "#{ora_user}"
-    group "#{ora_group}"
+  directory var_path do
+    owner ora_user
+    group ora_group
     mode '2755'
     action :create
   end
 
   unzip_fx "linux-oracle_client-#{version}" do
-    source "#{installer_url}"
-    checksum "#{installer_checksum}"
+    source installer_url
+    checksum installer_checksum
     mode '0755'
     recursive true
     creates 'client'
@@ -96,15 +96,15 @@ action :build do
 
   template "linux-oracle_client-#{version}/client/install/oraparam.ini" do
     source "oracle-home/#{version}/install/oraparam.ini.erb"
-    owner "#{ora_user}"
-    group "#{ora_group}"
+    owner ora_user
+    group ora_group
     mode '0644'
   end
 
   template "linux-oracle_client-#{version}/client/response/client_install.rsp" do
     source "oracle-home/#{version}/response/client_install.rsp.erb"
-    owner "#{ora_user}"
-    group "#{ora_group}"
+    owner ora_user
+    group ora_group
     mode '0644'
     variables(
       base_path: base_path,
@@ -118,7 +118,7 @@ action :build do
   execute 'run oracle installer' do
     command "source /etc/profile && ./runInstaller -silent -responseFile /linux-oracle_client-#{version}/client/response/client_install.rsp"
     cwd "linux-oracle_client-#{version}/client/"
-    user "#{ora_user}"
+    user ora_user
   end
 
   # This is because oracle installer returns early but a subprocess continues to install.
@@ -133,47 +133,47 @@ action :build do
   end
 
   file "#{home_path}/network/admin/tnsnames.ora" do
-    content "#{tnsnames_options}"
+    content tnsnames_options
     mode '0640'
-    owner "#{ora_user}"
-    group "#{ora_group}"
+    owner ora_user
+    group ora_group
   end
 
   template "#{home_path}/network/admin/sqlnet.ora" do
     source "oracle-home/#{version}/network/admin/sqlnet.ora.erb"
-    owner "#{ora_user}"
-    group "#{ora_group}"
+    owner ora_user
+    group ora_group
     mode '0640'
     variables(
       sqlnet_options: new_resource.sqlnet_options
     )
   end
 
-  directory "#{wallet_path}" do
+  directory wallet_path do
     not_if { tls_certificate_url == '' }
-    owner "#{ora_user}"
-    group "#{ora_group}"
+    owner ora_user
+    group ora_group
     mode '0750'
     action :create
   end
 
   remote_file "#{wallet_path}/root-cert.pem" do
     not_if { tls_certificate_url == '' }
-    source "#{tls_certificate_url}"
+    source tls_certificate_url
     mode '0640'
-    owner "#{ora_user}"
-    group "#{ora_group}"
+    owner ora_user
+    group ora_group
   end
 
   execute 'create wallet' do
     not_if { tls_certificate_url == '' }
     command "source /etc/profile && orapki wallet create -wallet #{wallet_path} -auto_login_only"
-    user "#{ora_user}"
+    user ora_user
   end
 
   execute 'add wallet' do
     not_if { tls_certificate_url == '' }
     command "source /etc/profile && orapki wallet add -wallet #{wallet_path} -trusted_cert -cert #{wallet_path}/root-cert.pem -auto_login_only "
-    user "#{ora_user}"
+    user ora_user
   end
 end
