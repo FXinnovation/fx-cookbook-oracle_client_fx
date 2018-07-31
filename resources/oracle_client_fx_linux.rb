@@ -9,15 +9,15 @@ resource_name :oracle_client_fx
 
 provides :oracle_client_fx, os: 'linux'
 
-property :java_version,             ['8', '10', '11'],  default: '8'
-property :user,                     String,             default: 'oracle'
-property :group,                    String,             default: 'dba'
-property :version,                  ['11.2'],           default: '11.2'
+property :java_version,             %w(8 10 11),    default: '8'
+property :user,                     String,         default: 'oracle'
+property :group,                    String,         default: 'dba'
+property :version,                  ['11.2'],       default: '11.2'
 property :source,                   String
 property :checksum,                 String
-property :sqlnet_options,           Hash,               default: {}
-property :tnsnames_options,         String,             default: ''
-property :tls_certificate_url,      String,             default: ''
+property :sqlnet_options,           Hash,           default: {}
+property :tnsnames_options,         String,         default: ''
+property :tls_certificate_url,      String,         default: ''
 
 action :build do
   base_path    = '/opt/oracle'
