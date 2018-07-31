@@ -82,7 +82,7 @@ suites:
       - centos7
       - redhat6
       - redhat7
-      - debian8
-      - debian9
-      - ubuntu1404
-      - ubuntu1604
+#      - debian8
+#      - debian9
+#      - ubuntu1404
+#      - ubuntu1604
