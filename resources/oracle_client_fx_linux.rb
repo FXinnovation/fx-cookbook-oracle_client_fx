@@ -9,15 +9,15 @@ resource_name :oracle_client_fx
 
 provides :oracle_client_fx, os: 'linux'
 
-property :java_version,             String, default: '8'
-property :ora_user,                 String, default: 'oracle'
-property :ora_group,                String, default: 'dba'
-property :version,                  String, default: '11.2'
-property :installer_checksum,       String, default: '6d03e05c0fa3a5f6a0fb6aa75f7b9dce9e09a31d776516694f7fa6ebce9bb775'
-property :installer_url,            String
-property :sqlnet_options,           Hash, default: {}
-property :tnsnames_options,         String, default: ''
-property :tls_certificate_url,      String, default: ''
+property :java_version,             ['8, 10, 11'],  default: '8'
+property :user,                     String,         default: 'oracle'
+property :group,                    String,         default: 'dba'
+property :version,                  ['11.2'],       default: '11.2'
+property :source,                   String
+property :checksum,                 String
+property :sqlnet_options,           Hash,           default: {}
+property :tnsnames_options,         String,         default: ''
+property :tls_certificate_url,      String,         default: ''
 
 action :build do
   base_path    = '/opt/oracle'
@@ -31,14 +31,14 @@ action :build do
   node.default['java']['jdk_version'] = new_resource.java_version
   include_recipe 'java::default'
 
-  user ora_user do
+  declare_resource(:user, new_resource.user) do
     comment 'Oracle user.'
     system true
     manage_home false
   end
 
-  group ora_group do
-    members ora_user
+  declare_resource(:group, new_resource.group) do
+    members new_resource.user
     append true
     system true
   end
@@ -71,22 +71,22 @@ action :build do
   end
 
   directory base_path do
-    owner ora_user
-    group ora_group
+    owner new_resource.user
+    group new_resource.group
     mode '2755'
     action :create
   end
 
   directory var_path do
-    owner ora_user
-    group ora_group
+    owner new_resource.user
+    group new_resource.group
     mode '2755'
     action :create
   end
 
   unzip_fx "linux-oracle_client-#{version}" do
-    source installer_url
-    checksum installer_checksum
+    source new_resource.source
+    checksum new_resource.checksum if new_resource.property_is_set?('checksum')
     mode '0755'
     recursive true
     creates 'client'
@@ -96,19 +96,19 @@ action :build do
 
   template "linux-oracle_client-#{version}/client/install/oraparam.ini" do
     source "oracle-home/#{version}/install/oraparam.ini.erb"
-    owner ora_user
-    group ora_group
+    owner new_resource.user
+    group new_resource.group
     mode '0644'
   end
 
   template "linux-oracle_client-#{version}/client/response/client_install.rsp" do
     source "oracle-home/#{version}/response/client_install.rsp.erb"
-    owner ora_user
-    group ora_group
+    owner new_resource.user
+    group new_resource.group
     mode '0644'
     variables(
       base_path: base_path,
-      group: new_resource.ora_group,
+      group: new_resource.group,
       home_path: home_path,
       bin_path: bin_path,
       lib_path: lib_path
@@ -118,7 +118,7 @@ action :build do
   execute 'run oracle installer' do
     command "source /etc/profile && ./runInstaller -silent -responseFile /linux-oracle_client-#{version}/client/response/client_install.rsp"
     cwd "linux-oracle_client-#{version}/client/"
-    user ora_user
+    user new_resource.user
   end
 
   # This is because oracle installer returns early but a subprocess continues to install.
@@ -133,16 +133,16 @@ action :build do
   end
 
   file "#{home_path}/network/admin/tnsnames.ora" do
-    content tnsnames_options
+    content new_resource.tnsnames_options
     mode '0640'
-    owner ora_user
-    group ora_group
+    owner new_resource.user
+    group new_resource.group
   end
 
   template "#{home_path}/network/admin/sqlnet.ora" do
     source "oracle-home/#{version}/network/admin/sqlnet.ora.erb"
-    owner ora_user
-    group ora_group
+    owner new_resource.user
+    group new_resource.group
     mode '0640'
     variables(
       sqlnet_options: new_resource.sqlnet_options
@@ -150,30 +150,30 @@ action :build do
   end
 
   directory wallet_path do
-    not_if { tls_certificate_url == '' }
-    owner ora_user
-    group ora_group
+    not_if { new_resource.tls_certificate_url == '' }
+    owner new_resource.user
+    group new_resource.group
     mode '0750'
     action :create
   end
 
   remote_file "#{wallet_path}/root-cert.pem" do
-    not_if { tls_certificate_url == '' }
-    source tls_certificate_url
+    not_if { new_resource.tls_certificate_url == '' }
+    source new_resource.tls_certificate_url
     mode '0640'
-    owner ora_user
-    group ora_group
+    owner new_resource.user
+    group new_resource.group
   end
 
   execute 'create wallet' do
-    not_if { tls_certificate_url == '' }
+    not_if { new_resource.tls_certificate_url == '' }
     command "source /etc/profile && orapki wallet create -wallet #{wallet_path} -auto_login_only"
-    user ora_user
+    user new_resource.user
   end
 
   execute 'add wallet' do
-    not_if { tls_certificate_url == '' }
+    not_if { new_resource.tls_certificate_url == '' }
     command "source /etc/profile && orapki wallet add -wallet #{wallet_path} -trusted_cert -cert #{wallet_path}/root-cert.pem -auto_login_only "
-    user ora_user
+    user new_resource.user
   end
 end

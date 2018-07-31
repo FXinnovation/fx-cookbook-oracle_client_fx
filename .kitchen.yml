@@ -64,7 +64,8 @@ suites:
       oracle_client_fx:
         java_version: '8'
         version: '11.2'
-        installer_url: 'http://depot.xcorp.fairstone.ca/repo/oracle/linux.x64_11gR2_client.zip'
+        source: 'http://depot.xcorp.fairstone.ca/repo/oracle/linux.x64_11gR2_client.zip'
+        checksum: '6d03e05c0fa3a5f6a0fb6aa75f7b9dce9e09a31d776516694f7fa6ebce9bb775'
         sqlnet_options:
           WALLET_LOCATION: '(SOURCE = (METHOD = FILE) (METHOD_DATA = (DIRECTORY = $ORACLE_HOME/ssl_wallet)))'
           SSL_CLIENT_AUTHENTICATION: 'FALSE'

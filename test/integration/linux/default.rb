@@ -42,6 +42,7 @@ control 'oracle_client_fx_linux' do
   end
 
   describe directory(var_path) do
+    its('mode') { should cmp '02755' }
     its('owner') { should eq user }
     its('group') { should eq group }
   end
