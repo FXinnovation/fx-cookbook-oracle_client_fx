@@ -43,6 +43,8 @@ action :build do
     system true
   end
 
+  package 'epel-release'
+
   dependencies.each do |oracle_dependency|
     package oracle_dependency
   end
