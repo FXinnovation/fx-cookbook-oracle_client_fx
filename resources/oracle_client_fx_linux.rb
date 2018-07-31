@@ -22,7 +22,7 @@ property :tls_certificate_url,      String,         default: ''
 action :build do
   base_path    = '/opt/oracle'
   var_path     = '/var/oracle'
-  home_path    = "#{base_path}/product/#{version}"
+  home_path    = "#{base_path}/product/#{new_resource.version}"
   bin_path     = "#{home_path}/bin"
   lib_path     = "#{home_path}/lib"
   wallet_path  = "#{home_path}/ssl_wallet"
@@ -84,25 +84,25 @@ action :build do
     action :create
   end
 
-  unzip_fx "linux-oracle_client-#{version}" do
+  unzip_fx "linux-oracle_client-#{new_resource.version}" do
     source new_resource.source
     checksum new_resource.checksum if new_resource.property_is_set?('checksum')
     mode '0755'
     recursive true
     creates 'client'
-    target_dir "/linux-oracle_client-#{version}"
+    target_dir "/linux-oracle_client-#{new_resource.version}"
     action :extract
   end
 
-  template "linux-oracle_client-#{version}/client/install/oraparam.ini" do
-    source "oracle-home/#{version}/install/oraparam.ini.erb"
+  template "linux-oracle_client-#{new_resource.version}/client/install/oraparam.ini" do
+    source "oracle-home/#{new_resource.version}/install/oraparam.ini.erb"
     owner new_resource.user
     group new_resource.group
     mode '0644'
   end
 
-  template "linux-oracle_client-#{version}/client/response/client_install.rsp" do
-    source "oracle-home/#{version}/response/client_install.rsp.erb"
+  template "linux-oracle_client-#{new_resource.version}/client/response/client_install.rsp" do
+    source "oracle-home/#{new_resource.version}/response/client_install.rsp.erb"
     owner new_resource.user
     group new_resource.group
     mode '0644'
@@ -116,8 +116,8 @@ action :build do
   end
 
   execute 'run oracle installer' do
-    command "source /etc/profile && ./runInstaller -silent -responseFile /linux-oracle_client-#{version}/client/response/client_install.rsp"
-    cwd "linux-oracle_client-#{version}/client/"
+    command "source /etc/profile && ./runInstaller -silent -responseFile /linux-oracle_client-#{new_resource.version}/client/response/client_install.rsp"
+    cwd "linux-oracle_client-#{new_resource.version}/client/"
     user new_resource.user
   end
 
@@ -140,7 +140,7 @@ action :build do
   end
 
   template "#{home_path}/network/admin/sqlnet.ora" do
-    source "oracle-home/#{version}/network/admin/sqlnet.ora.erb"
+    source "oracle-home/#{new_resource.version}/network/admin/sqlnet.ora.erb"
     owner new_resource.user
     group new_resource.group
     mode '0640'
