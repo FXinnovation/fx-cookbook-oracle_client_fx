@@ -1,6 +1,6 @@
 #
 # cookbook::oracle_client_fx
-# recipe::default
+# recipe::kitchen
 #
 # author::fxinnovation
 # description::Test recipe used for kitchen tests

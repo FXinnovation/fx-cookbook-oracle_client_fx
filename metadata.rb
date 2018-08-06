@@ -11,3 +11,4 @@ source_url       'https://bitbucket.org/fxadmin/public-common-cookbook-oracle_cl
 issues_url       'https://bitbucket.org/fxadmin/public-common-cookbook-oracle_client_fx/issues/'
 depends          'java', '~> 1.50.0'
 depends          'unzip_fx'
+depends          'wait'

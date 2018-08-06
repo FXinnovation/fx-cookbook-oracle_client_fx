@@ -118,6 +118,7 @@ action :build do
   end
 
   execute 'run oracle installer' do
+    not_if { ::File.exist?("#{home_path}/root.sh") }
     command "source /etc/profile && ./runInstaller -silent -responseFile /linux-oracle_client-#{new_resource.version}/client/response/client_install.rsp"
     cwd "linux-oracle_client-#{new_resource.version}/client/"
     user new_resource.user
@@ -125,9 +126,11 @@ action :build do
 
   # This is because oracle installer returns early but a subprocess continues to install.
   # Thus at this time installation might be unfinished. Install usually takes 30s.
-  execute 'wait for oracle client to be installed.' do
+  wait_until "#{home_path}/root.sh" do
     not_if { ::File.exist?("#{home_path}/root.sh") }
-    command 'sleep 60'
+    command       "[ -f #{home_path}/root.sh ] || exit 1"
+    message       'Waiting for oracle installation to be completed.'
+    wait_interval 3
   end
 
   execute 'run oracle client end of installation' do
