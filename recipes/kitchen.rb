@@ -7,7 +7,7 @@
 #
 
 oracle_client_fx 'kitchen' do
-  java_version          node['oracle_client_fx']['kitchen']['jdk_version']
+  java_version          node['oracle_client_fx']['kitchen']['java_version']
   version               node['oracle_client_fx']['kitchen']['version']
   source                node['oracle_client_fx']['kitchen']['source']
   checksum              node['oracle_client_fx']['kitchen']['checksum']

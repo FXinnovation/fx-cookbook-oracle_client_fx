@@ -20,33 +20,38 @@ property :tnsnames_options,         String,         default: ''
 property :tls_certificate_url,      String,         default: ''
 
 action :build do
-  base_path    = '/opt/oracle'
-  var_path     = '/var/oracle'
-  home_path    = "#{base_path}/product/#{new_resource.version}"
-  bin_path     = "#{home_path}/bin"
-  lib_path     = "#{home_path}/lib"
-  wallet_path  = "#{home_path}/ssl_wallet"
-  dependencies = %w(gcc-c++ gcc compat-libstdc++-33 compat-libstdc++-33.i686 glibc glibc.i686 unixODBC unixODBC.i686 elfutils-libelf-devel libstdc++ libaio-devel unixODBC-devel sysstat)
+  base_path         = '/opt/oracle'
+  var_path          = '/var/oracle'
+  home_path         = "#{base_path}/product/#{new_resource.version}"
+  bin_path          = "#{home_path}/bin"
+  lib_path          = "#{home_path}/lib"
+  wallet_path       = "#{home_path}/ssl_wallet"
+  dependencies      = %w(gcc-c++ gcc compat-libstdc++-33 glibc unixODBC elfutils-libelf-devel libstdc++ libaio-devel unixODBC-devel sysstat)
+  dependencies_i686 = %w(compat-libstdc++-33 glibc unixODBC)
 
   node.default['java']['jdk_version'] = new_resource.java_version
   include_recipe 'java::default'
 
-  declare_resource(:user, new_resource.user) do
-    comment 'Oracle user.'
-    system true
-    manage_home false
-  end
-
   declare_resource(:group, new_resource.group) do
-    members new_resource.user
     append true
     system true
   end
 
-  package 'epel-release'
+  declare_resource(:user, new_resource.user) do
+    comment 'Oracle user.'
+    gid new_resource.group
+    system true
+    manage_home false
+  end
 
   dependencies.each do |oracle_dependency|
     package oracle_dependency
+  end
+
+  dependencies_i686.each do |oracle_dependency_i686|
+    package oracle_dependency_i686 do
+      arch 'i686'
+    end
   end
 
   template '/etc/profile.d/oracle.sh' do
@@ -57,7 +62,8 @@ action :build do
     variables(
       home_path: home_path,
       bin_path: bin_path,
-      lib_path: lib_path
+      lib_path: lib_path,
+      var_path: var_path
     )
     verify 'bash -n %{path}'
   end
@@ -82,8 +88,19 @@ action :build do
   directory var_path do
     owner new_resource.user
     group new_resource.group
-    mode '2755'
+    mode '2775'
     action :create
+  end
+
+  template "#{var_path}/oraInst.loc" do
+    source "oracle-inventory/#{new_resource.version}/oraInst.loc.erb"
+    owner new_resource.user
+    group new_resource.group
+    mode '0664'
+    variables(
+      var_path: var_path,
+      group: new_resource.group
+    )
   end
 
   unzip_fx "linux-oracle_client-#{new_resource.version}" do
@@ -113,24 +130,20 @@ action :build do
       group: new_resource.group,
       home_path: home_path,
       bin_path: bin_path,
-      lib_path: lib_path
+      lib_path: lib_path,
+      var_path: var_path
     )
   end
 
   execute 'run oracle installer' do
     not_if { ::File.exist?("#{home_path}/root.sh") }
-    command "source /etc/profile && ./runInstaller -silent -responseFile /linux-oracle_client-#{new_resource.version}/client/response/client_install.rsp"
+    command "source /etc/profile && ./runInstaller -noconfig -silent -waitforcompletion -ignoreprereq -ignoreSysprereqs -responseFile /linux-oracle_client-#{new_resource.version}/client/response/client_install.rsp -invPtrLoc #{var_path}/oraInst.loc"
     cwd "linux-oracle_client-#{new_resource.version}/client/"
     user new_resource.user
-  end
-
-  # This is because oracle installer returns early but a subprocess continues to install.
-  # Thus at this time installation might be unfinished. Install usually takes 30s.
-  wait_until "#{home_path}/root.sh" do
-    not_if { ::File.exist?("#{home_path}/root.sh") }
-    command       "[ -f #{home_path}/root.sh ] || exit 1"
-    message       'Waiting for oracle installation to be completed.'
-    wait_interval 3
+    group new_resource.group
+    environment ({  'USER' => "#{new_resource.user}" })
+    live_stream true
+    returns [253]
   end
 
   execute 'run oracle client end of installation' do
@@ -139,7 +152,7 @@ action :build do
 
   file "#{home_path}/network/admin/tnsnames.ora" do
     content new_resource.tnsnames_options
-    mode '0640'
+    mode '0660'
     owner new_resource.user
     group new_resource.group
   end
@@ -148,7 +161,7 @@ action :build do
     source "oracle-home/#{new_resource.version}/network/admin/sqlnet.ora.erb"
     owner new_resource.user
     group new_resource.group
-    mode '0640'
+    mode '0660'
     variables(
       sqlnet_options: new_resource.sqlnet_options
     )
