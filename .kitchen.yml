@@ -39,22 +39,6 @@ platforms:
   driver:
     image_project: rhel-cloud
     image_family: rhel-7
-- name: ubuntu1404
-  driver:
-    image_project: ubuntu-os-cloud
-    image_family: ubuntu-1404-lts
-- name: ubuntu1604
-  driver:
-    image_project: ubuntu-os-cloud
-    image_family: ubuntu-1604-lts
-- name: debian8
-  driver:
-    image_project: debian-cloud
-    image_family: debian-8
-- name: debian9
-  driver:
-    image_project: debian-cloud
-    image_family: debian-9
 
 suites:
   - name: oracle_client
@@ -74,6 +58,7 @@ suites:
             SSL_CIPHER_SUITES': '(SSL_RSA_WITH_AES_256_CBC_SHA)'
             SSL_SERVER_DN_MATCH': 'ON'
           tls_certificate_url: 'https://s3.amazonaws.com/rds-downloads/rds-ca-2015-root.pem'
+          tnsnames_options:  ''
     verifier:
       inspec_tests:
         - path: test/integration/linux/default.rb
