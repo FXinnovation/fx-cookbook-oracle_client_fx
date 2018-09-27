@@ -36,13 +36,13 @@ control 'oracle_client_fx_linux' do
   end
 
   describe directory(home_path) do
-    its('mode') { should cmp '0770' }
+    its('mode') { should cmp '02755' }
     its('owner') { should eq user }
     its('group') { should eq group }
   end
 
   describe directory(var_path) do
-    its('mode') { should cmp '02755' }
+    its('mode') { should cmp '02775' }
     its('owner') { should eq user }
     its('group') { should eq group }
   end
@@ -54,13 +54,13 @@ control 'oracle_client_fx_linux' do
   end
 
   describe file("#{admin_path}/tnsnames.ora") do
-    its('mode') { should cmp '0640' }
+    its('mode') { should cmp '0660' }
     its('owner') { should eq user }
     its('group') { should eq group }
   end
 
   describe file("#{admin_path}/sqlnet.ora") do
-    its('mode') { should cmp '0640' }
+    its('mode') { should cmp '0660' }
     its('owner') { should eq user }
     its('group') { should eq group }
   end
