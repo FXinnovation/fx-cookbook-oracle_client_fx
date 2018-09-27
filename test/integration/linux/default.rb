@@ -72,4 +72,12 @@ control 'oracle_client_fx_linux' do
   describe command("#{bin_path}/sqlplus") do
     it { should exist }
   end
+
+  describe command("#{bin_path}/tnsping") do
+    it { should exist }
+  end
+
+  describe bash('tnsping') do
+    its('exit_status') { should eq 1 }
+  end
 end
