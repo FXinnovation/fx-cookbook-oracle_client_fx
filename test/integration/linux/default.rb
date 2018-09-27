@@ -77,7 +77,11 @@ control 'oracle_client_fx_linux' do
     it { should exist }
   end
 
-  describe bash('tnsping') do
+  describe bash('su --login -c "tnsping" oracle') do
+    its('exit_status') { should eq 1 }
+  end
+
+  describe bash('su --login -c "sqlplus" oracle') do
     its('exit_status') { should eq 1 }
   end
 end
