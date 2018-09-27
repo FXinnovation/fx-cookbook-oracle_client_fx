@@ -134,7 +134,7 @@ action :build do
     cwd "linux-oracle_client-#{new_resource.version}/client/"
     user new_resource.user
     group new_resource.group
-    environment ({  'USER' => new_resource.user })
+    environment('USER' => new_resource.user)
     live_stream true
     returns [253]
   end
