@@ -26,8 +26,7 @@ action :build do
   bin_path          = "#{home_path}/bin"
   lib_path          = "#{home_path}/lib"
   wallet_path       = "#{home_path}/ssl_wallet"
-  dependencies      = %w(gcc-c++ gcc compat-libstdc++-33 glibc unixODBC elfutils-libelf-devel libstdc++ libaio-devel unixODBC-devel sysstat)
-  dependencies_i686 = %w(compat-libstdc++-33 glibc unixODBC)
+  dependencies      = %w(compat-libstdc++-33.i686 glibc.i686 unixODBC.i686 gcc-c++ gcc compat-libstdc++-33 glibc unixODBC elfutils-libelf-devel libstdc++ libaio-devel unixODBC-devel sysstat)
 
   node.default['java']['jdk_version'] = new_resource.java_version
   include_recipe 'java::default'
@@ -46,12 +45,6 @@ action :build do
 
   dependencies.each do |oracle_dependency|
     package oracle_dependency
-  end
-
-  dependencies_i686.each do |oracle_dependency_i686|
-    package oracle_dependency_i686 do
-      arch 'i386'
-    end
   end
 
   template '/etc/profile.d/oracle.sh' do
