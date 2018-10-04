@@ -3,7 +3,7 @@
 The oracle_client_fx cookbook provides a resource to install Oracle client.
 
 ### Supported oracle version
-* 11.2
+* 11.2.0.4 (careful, the public Oracle version 11.2.0.1 is not supported)
 
 ## Requirements
 

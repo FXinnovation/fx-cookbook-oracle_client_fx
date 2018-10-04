@@ -136,7 +136,14 @@ action :build do
     group new_resource.group
     environment('USER' => new_resource.user)
     live_stream true
-    returns [253]
+  end
+
+  execute 'run oracle configuration tool' do
+    command "source /etc/profile && #{home_path}/cfgtoollogs/configToolAllCommands RESPONSE_FILE=/linux-oracle_client-#{new_resource.version}/client/response/client_install.rsp"
+    user new_resource.user
+    group new_resource.group
+    environment('USER' => new_resource.user)
+    live_stream true
   end
 
   execute 'run oracle client end of installation' do
