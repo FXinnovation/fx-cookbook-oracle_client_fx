@@ -79,6 +79,6 @@ control 'oracle_client_fx_linux' do
 
   describe bash('su --login -c "tnsping" oracle') do
     its('exit_status') { should eq 1 }
-    its('stdout') { should match ".*11.2.0.4.*" }
+    its('stdout') { should match '.*11.2.0.4.*' }
   end
 end
