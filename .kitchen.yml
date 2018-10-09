@@ -1,0 +1,69 @@
+---
+driver:
+  name: gce
+  project: dazzlingwrench
+  region: us-east1
+  preemptible: true
+  metadata:
+    ssh-keys: <%= 'kitchenuser:' + IO.binread("/tmp/id_rsa.pub").rstrip! %>
+  tags:
+    - fxinnovation
+
+provisioner:
+  name: chef_zero
+
+verifier:
+  name: inspec
+  sudo: true
+  format: junit
+  output: "%{platform}_%{suite}_inspec.xml"
+
+transport:
+  username: kitchenuser
+  ssh_key: /tmp/id_rsa
+
+platforms:
+- name: centos6
+  driver:
+    image_project: centos-cloud
+    image_family: centos-6
+- name: centos7
+  driver:
+    image_project: centos-cloud
+    image_family: centos-7
+- name: redhat6
+  driver:
+    image_project: rhel-cloud
+    image_family: rhel-6
+- name: redhat7
+  driver:
+    image_project: rhel-cloud
+    image_family: rhel-7
+
+suites:
+  - name: oracle_client
+    run_list:
+      - recipe[oracle_client_fx::kitchen]
+    attributes:
+      oracle_client_fx:
+        kitchen:
+          java_version: '8'
+          version: '11.2'
+          source: 'http://35.186.216.115/repository/public/oracle/11.2/client/linux.x64_11gR2_client_patched.zip'
+          checksum: '88b4a4abb57f7e94941fe21fa99f8481868badf2e1e0749522bba53450f880c2'
+          sqlnet_options:
+            WALLET_LOCATION: '(SOURCE = (METHOD = FILE) (METHOD_DATA = (DIRECTORY = $ORACLE_HOME/ssl_wallet)))'
+            SSL_CLIENT_AUTHENTICATION: 'FALSE'
+            SSL_VERSION: '1.0'
+            SSL_CIPHER_SUITES': '(SSL_RSA_WITH_AES_256_CBC_SHA)'
+            SSL_SERVER_DN_MATCH': 'ON'
+          tls_certificate_url: 'https://s3.amazonaws.com/rds-downloads/rds-ca-2015-root.pem'
+          tnsnames_options:  ''
+    verifier:
+      inspec_tests:
+        - path: test/integration/linux/default.rb
+    includes:
+      - centos6
+      - centos7
+      - redhat6
+      - redhat7
