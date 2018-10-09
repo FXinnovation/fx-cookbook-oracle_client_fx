@@ -61,14 +61,11 @@ action :build do
     verify 'bash -n %{path}'
   end
 
-  template '/etc/ld.so.conf.d/oracle.conf' do
-    source 'etc/ld.so.conf.d/oracle.conf.erb'
+  file '/etc/ld.so.conf.d/oracle.conf' do
+    content lib_path
     owner 'root'
     group 'root'
     mode '0644'
-    variables(
-      lib_path: lib_path
-    )
   end
 
   directory base_path do
