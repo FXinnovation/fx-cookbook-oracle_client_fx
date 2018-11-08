@@ -140,6 +140,18 @@ action :build do
     command "#{home_path}/root.sh"
   end
 
+  package 'patchelf' do
+    action :install
+  end
+
+  execute 'makes sure oracle binaries get its libraries' do
+    command "patchelf --set-rpath #{lib_path} #{bin_path}/*"
+  end
+
+  package 'patchelf' do
+    action :remove
+  end
+
   file "#{home_path}/network/admin/tnsnames.ora" do
     content new_resource.tnsnames_options
     mode '0660'
