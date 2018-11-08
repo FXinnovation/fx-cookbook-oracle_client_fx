@@ -61,13 +61,6 @@ action :build do
     verify 'bash -n %{path}'
   end
 
-  file '/etc/ld.so.conf.d/oracle.conf' do
-    content lib_path
-    owner 'root'
-    group 'root'
-    mode '0644'
-  end
-
   directory base_path do
     owner new_resource.user
     group new_resource.group
