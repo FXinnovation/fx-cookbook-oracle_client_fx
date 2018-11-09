@@ -36,6 +36,16 @@ N/A
 | `tnsnames_options`    | `String`      | `false`  | ''      | `All`            | tnsnames.ora file content. |
 | `tls_certificate_url` | `String`      | `false`  | ''      | `All`            | URL of the root certificate to add in the client wallet. |
 
+### patchelf_fx
+
+#### Properties
+
+| Name           | Type       | Required | Default | Operating System | Description |
+| -------------- | ---------- | -------- | ------- | ---------------- | ----------- |
+| `library_path` | `String`   | `true`   | -       | `All`            | Library paths to use, separated by `:` |
+| `binary_path`  | `String`   | `true`   | -       | `All`            | Binaries to patch.                     |
+
+
 ## Versionning
 This cookbook will follow semantic versionning 2.0.0 as described [here](https://semver.org/)
 
