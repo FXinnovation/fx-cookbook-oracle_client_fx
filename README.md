@@ -38,6 +38,15 @@ N/A
 
 ### patchelf_fx
 
+Run patchelf to a set of binaries.
+It modifies linked libraries of ELF binaries in `binary_path` to use libraries in `library_path` in priority.
+
+For more information, check [the NixOS PatchELF documentation](https://nixos.org/patchelf.html).
+
+This resource is kept in this cookbook even if it should be an external dependency.
+**This resource should eventually be moved in its own cookbook.**
+That being said, the moving will not cause any breaking change on this cookbook.
+
 #### Properties
 
 | Name           | Type       | Required | Default | Operating System | Description |
