@@ -143,6 +143,7 @@ action :build do
   patchelf_fx 'makes sure oracle binaries uses oracle libraries' do
     binary_path bin_path
     library_path lib_path
+    action :set_rpath
   end
 
   file "#{home_path}/network/admin/tnsnames.ora" do
