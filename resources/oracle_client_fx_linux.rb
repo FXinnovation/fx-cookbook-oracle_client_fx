@@ -61,13 +61,6 @@ action :build do
     verify 'bash -n %{path}'
   end
 
-  file '/etc/ld.so.conf.d/oracle.conf' do
-    content lib_path
-    owner 'root'
-    group 'root'
-    mode '0644'
-  end
-
   directory base_path do
     owner new_resource.user
     group new_resource.group
@@ -145,6 +138,12 @@ action :build do
 
   execute 'run oracle client end of installation' do
     command "#{home_path}/root.sh"
+  end
+
+  patchelf_fx 'makes sure oracle binaries uses oracle libraries' do
+    binary_path bin_path
+    library_path lib_path
+    action :set_rpath
   end
 
   file "#{home_path}/network/admin/tnsnames.ora" do

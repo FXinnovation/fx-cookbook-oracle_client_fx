@@ -36,6 +36,25 @@ N/A
 | `tnsnames_options`    | `String`      | `false`  | ''      | `All`            | tnsnames.ora file content. |
 | `tls_certificate_url` | `String`      | `false`  | ''      | `All`            | URL of the root certificate to add in the client wallet. |
 
+### patchelf_fx
+
+Run patchelf to a set of binaries.
+It modifies linked libraries of ELF binaries in `binary_path` to use libraries in `library_path` in priority.
+
+For more information, check [the NixOS PatchELF documentation](https://nixos.org/patchelf.html).
+
+This resource is kept in this cookbook even if it should be an external dependency.
+**This resource should eventually be moved in its own cookbook.**
+That being said, the moving will not cause any breaking change on this cookbook.
+
+#### Properties
+
+| Name           | Type       | Required | Default | Operating System | Description |
+| -------------- | ---------- | -------- | ------- | ---------------- | ----------- |
+| `library_path` | `String`   | `true`   | -       | `All`            | Library paths to use, separated by `:` |
+| `binary_path`  | `String`   | `true`   | -       | `All`            | Binaries to patch.                     |
+
+
 ## Versionning
 This cookbook will follow semantic versionning 2.0.0 as described [here](https://semver.org/)
 
